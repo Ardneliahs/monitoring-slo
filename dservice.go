@@ -12,7 +12,7 @@ var startTime = time.Now()
 func main() {
 	http.HandleFunc("/health",healthHandler)
 	http.HandleFunc("/work",workHandler)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", nil); err != nil { //instanialisation of TCP connection is abstracted inside listen and serve
 		fmt.Println("Server error:", err)
     }
 }
