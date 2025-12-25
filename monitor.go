@@ -8,6 +8,9 @@ import (
 	"os"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"context"
+	"encoding/json"
+	"fmt"
 )
 
 var serviceUp = prometheus.NewGaugeVec(
@@ -21,6 +24,20 @@ var healthTimeout = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Name: "health_timeout",
 		Help: "health check timeout",
+	},
+	[]string{"app"},
+)
+var healthFailure = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "health_failure",
+		Help: "health check failure",
+	},
+	[]string{"app"},
+)
+var appUnreachable = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: "app_unreachable",
+		Help: "monitor could not contact the app",
 	},
 	[]string{"app"},
 )
@@ -64,6 +81,11 @@ type Config struct {
 	Services []Service `yaml:"services"`
 	Monitor Monitor `yaml:"monitor"`
 }
+type HealthResponse struct {
+	Status string `json:"status"`
+	UptimeSec float64 `json:"uptime_sec"`
+	Version string `json:"version"`
+}
 
 func main() {
 	config := flag.String("config","/etc/monitor/config.yaml","config file location")
@@ -78,10 +100,22 @@ func main() {
 	}
 	prometheus.MustRegister(serviceUp)
 	prometheus.MustRegister(healthTimeout)
+	prometheus.MustRegister(healthFailure)
+	prometheus.MustRegister(appUnreachable)
 	prometheus.MustRegister(upSince)
 	prometheus.MustRegister(workLatency)
 	prometheus.MustRegister(failureCount)
 	prometheus.MustRegister(appTimeout)
+	for _, svc := range cfg.Services {
+		serviceUp.With(prometheus.Labels{"app": svc.Name}).Set(0)
+		healthTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
+		healthFailure.With(prometheus.Labels{"app": svc.Name}).Set(0)
+		appUnreachable.With(prometheus.Labels{"app": svc.Name}).Set(0)
+		upSince.With(prometheus.Labels{"app": svc.Name}).Set(0)
+		workLatency.With(prometheus.Labels{"app": svc.Name}).Set(0)
+		failureCount.With(prometheus.Labels{"app": svc.Name}).Add(0)
+		appTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
+    }
 	go func() {
 		ticker := time.NewTicker(cfg.Monitor.Interval)
 		defer ticker.Stop()
@@ -97,9 +131,59 @@ func main() {
 }
 
 func checkHealth(name string, url string, timeout time.Duration){
-
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	req, _ := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		url+"/health",
+		nil,
+	)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			healthTimeout.WithLabelValues(name).Set(1)
+			return
+		}
+		healthFailure.WithLabelValues(name).Set(1)
+		return
+	}
+	defer resp.Body.Close()
+	var health HealthResponse
+	if err := json.NewDecoder(resp.Body).Decode(&health); err != nil {
+		fmt.Println("JSON decode failed:", err)
+		return
+	}
+	if health.Status == "UP" {
+		serviceUp.WithLabelValues(name).Set(1)
+	}
+	upSince.WithLabelValues(name).Set(health.UptimeSec)
 }
 
 func checkWork(name string, url string, timeout time.Duration){
-
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	req, _ := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		url+"/work",
+		nil,
+	)
+	start := time.Now()
+	resp, err := http.DefaultClient.Do(req)
+	latency := time.Since(start)
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			appTimeout.WithLabelValues(name).Set(1)
+			return
+		}
+		appUnreachable.WithLabelValues(name).Set(1)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 299 || resp.StatusCode < 200 {
+		failureCount.WithLabelValues(name).Inc()
+	} else {
+		workLatency.WithLabelValues(name).Set(latency.MilliSeconds() * 1000)
+	}
 }
