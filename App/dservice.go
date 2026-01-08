@@ -1,4 +1,4 @@
-package dservice
+package main
 
 import (
 	"net/http"
