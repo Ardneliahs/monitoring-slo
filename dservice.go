@@ -12,6 +12,7 @@ var startTime = time.Now()
 func main() {
 	http.HandleFunc("/health",healthHandler)
 	http.HandleFunc("/work",workHandler)
+	// nil means the default servemux will be used, we can also create our own.
 	if err := http.ListenAndServe(":8080", nil); err != nil { //instanialisation of TCP connection is abstracted inside listen and serve
 		fmt.Println("Server error:", err)
     }
@@ -41,6 +42,6 @@ func workHandler(w http.ResponseWriter, r *http.Request){ //has varying latency,
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		time.Sleep(time.Duration(reqNumber) * time.Millisecond)
-		w.Write([]byte("done!"))
+		w.Write([]byte("done!")) // because string not a single byte but a slice of bytes
 	}
 }

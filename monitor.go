@@ -98,14 +98,15 @@ func main() {
 	if err := yaml.Unmarshal(data,&cfg);err !=nil {
 		panic(err)
 	}
-	prometheus.MustRegister(serviceUp)
-	prometheus.MustRegister(healthTimeout)
-	prometheus.MustRegister(healthFailure)
-	prometheus.MustRegister(appUnreachable)
-	prometheus.MustRegister(upSince)
-	prometheus.MustRegister(workLatency)
-	prometheus.MustRegister(failureCount)
-	prometheus.MustRegister(appTimeout)
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(serviceUp)
+	registry.MustRegister(healthTimeout)
+	registry.MustRegister(healthFailure)
+	registry.MustRegister(appUnreachable)
+	registry.MustRegister(upSince)
+	registry.MustRegister(workLatency)
+	registry.MustRegister(failureCount)
+	registry.MustRegister(appTimeout)
 	for _, svc := range cfg.Services {
 		serviceUp.With(prometheus.Labels{"app": svc.Name}).Set(0)
 		healthTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
@@ -126,11 +127,17 @@ func main() {
 			}
 		}
 	}()
-	http.Handle("/metrics", promhttp.Handler())
+	handler := promhttp.HandlerFor(
+    registry,
+    promhttp.HandlerOpts{},
+    )
+	http.Handle("/metrics", handler)
 	http.ListenAndServe(":8081", nil)
 }
 
 func checkHealth(name string, url string, timeout time.Duration){
+	healthTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
+	healthFailure.With(prometheus.Labels{"app": svc.Name}).Set(0)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	req, _ := http.NewRequestWithContext(
@@ -156,11 +163,15 @@ func checkHealth(name string, url string, timeout time.Duration){
 	}
 	if health.Status == "UP" {
 		serviceUp.WithLabelValues(name).Set(1)
+	} else {
+		serviceUp.WithLabelValues(name).Set(0)
 	}
 	upSince.WithLabelValues(name).Set(health.UptimeSec)
 }
 
 func checkWork(name string, url string, timeout time.Duration){
+	appTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
+	appUnreachable.With(prometheus.Labels{"app": svc.Name}).Set(0)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	req, _ := http.NewRequestWithContext(
