@@ -136,8 +136,8 @@ func main() {
 }
 
 func checkHealth(name string, url string, timeout time.Duration){
-	healthTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
-	healthFailure.With(prometheus.Labels{"app": svc.Name}).Set(0)
+	healthTimeout.With(prometheus.Labels{"app": name}).Set(0)
+	healthFailure.With(prometheus.Labels{"app": name}).Set(0)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	req, _ := http.NewRequestWithContext(
@@ -170,8 +170,8 @@ func checkHealth(name string, url string, timeout time.Duration){
 }
 
 func checkWork(name string, url string, timeout time.Duration){
-	appTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
-	appUnreachable.With(prometheus.Labels{"app": svc.Name}).Set(0)
+	appTimeout.With(prometheus.Labels{"app": name}).Set(0)
+	appUnreachable.With(prometheus.Labels{"app": name}).Set(0)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	req, _ := http.NewRequestWithContext(
@@ -195,6 +195,6 @@ func checkWork(name string, url string, timeout time.Duration){
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		failureCount.WithLabelValues(name).Inc()
 	} else {
-		workLatency.WithLabelValues(name).Set(latency.MilliSeconds() * 1000)
+		workLatency.WithLabelValues(name).Set(latency.Milliseconds() * 1000)
 	}
 }
