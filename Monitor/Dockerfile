@@ -22,4 +22,4 @@ EXPOSE 8081
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/monitor/monitor"]
+ENTRYPOINT ["/monitor/monitor --config=/monitor/config.yaml"]
