@@ -152,7 +152,7 @@ func checkHealth(name string, url string, timeout time.Duration){
 			healthTimeout.WithLabelValues(name).Set(1)
 			return
 		}
-		healthFailure.WithLabelValues(name).Set(1)
+		healthFailure.WithLabelValues(name).Set(1) // should not be part of SLO
 		return
 	}
 	defer resp.Body.Close()
@@ -188,7 +188,7 @@ func checkWork(name string, url string, timeout time.Duration){
 			appTimeout.WithLabelValues(name).Set(1)
 			return
 		}
-		appUnreachable.WithLabelValues(name).Set(1)
+		appUnreachable.WithLabelValues(name).Set(1) // should not be part of slo
 		return
 	}
 	defer resp.Body.Close()
