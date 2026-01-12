@@ -1,7 +1,7 @@
 ---
 services:
   - name: app1
-    url: http://localhost:8080
+    url: http://dservice:8080
 
 monitor:
   interval: 5s

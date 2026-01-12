@@ -4,7 +4,7 @@ services:
     container_name: dservice
 
   monitor:
-    image: localhost/monitor:1
+    image: localhost/monitor:2
     container_name: monitor
     volumes:
     - ../Monitor/config.yaml:/monitor/config.yaml
