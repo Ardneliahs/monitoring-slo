@@ -22,4 +22,4 @@ EXPOSE 8081
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app/monitor"]
+ENTRYPOINT ["/monitor/monitor"]
