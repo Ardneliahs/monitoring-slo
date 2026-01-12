@@ -1,10 +1,10 @@
 services:
   service:
-    image: localhost/dservice:1
+    image: localhost/dservice:latest
     container_name: dservice
 
   monitor:
-    image: localhost/monitor:4
+    image: localhost/monitor:latest
     container_name: monitor
     volumes:
     - ../Monitor/config.yaml:/monitor/config.yaml
