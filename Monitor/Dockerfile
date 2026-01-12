@@ -16,7 +16,7 @@ FROM gcr.io/distroless/base-debian12
 
 WORKDIR /monitor
 
-COPY --from=builder /app/monitor .
+COPY --from=builder /monitor/monitor .
 
 EXPOSE 8081
 
