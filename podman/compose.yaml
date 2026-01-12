@@ -1,0 +1,14 @@
+services:
+  service:
+    image: localhost/dservice:1
+    container_name: dservice
+
+  monitor:
+    image: localhost/monitor:1
+    container_name: monitor
+    volumes:
+    - ../Monitor/config.yaml:/app/config.yaml
+    ports:
+    - "8081:8081"
+    depends_on:
+      - service
