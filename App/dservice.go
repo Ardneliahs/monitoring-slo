@@ -2,20 +2,23 @@ package main
 
 import (
 	"net/http"
-	"fmt"
 	"encoding/json"
 	"math/rand/v2"
 	"time"
+	"log"
+	"os"
 )
 
 var startTime = time.Now()
 func main() {
 	http.HandleFunc("/health",healthHandler)
 	http.HandleFunc("/work",workHandler)
+ 
 	// nil means the default servemux will be used, we can also create our own.
 	if err := http.ListenAndServe(":8080", nil); err != nil { //instanialisation of TCP connection is abstracted inside listen and serve
-		fmt.Println("Server error:", err)
+		log.Fatal(err)
     }
+	log.Println("service started")
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request){

@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 )
 
 var serviceUp = prometheus.NewGaugeVec(
@@ -92,11 +92,11 @@ func main() {
 	flag.Parse()
 	data, err := os.ReadFile(*config)
 	if err != nil {
-		panic(err)
+		log.Fatal("Error reading file: ", err)
 	}
 	var cfg Config
 	if err := yaml.Unmarshal(data,&cfg);err !=nil {
-		panic(err)
+		log.Fatal("Error Unmarshalling json: ", err)
 	}
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(serviceUp)
@@ -127,12 +127,10 @@ func main() {
 			}
 		}
 	}()
-	handler := promhttp.HandlerFor(
-    registry,
-    promhttp.HandlerOpts{},
-    )
+	handler := promhttp.HandlerFor(registry,promhttp.HandlerOpts{},)
 	http.Handle("/metrics", handler)
 	http.ListenAndServe(":8081", nil)
+	log.Println("monitor started")
 }
 
 func checkHealth(name string, url string, timeout time.Duration){
@@ -157,8 +155,9 @@ func checkHealth(name string, url string, timeout time.Duration){
 	}
 	defer resp.Body.Close()
 	var health HealthResponse
+	errLogger := log.New(os.Stderr, "ERROR: ", log.LstdFlags)
 	if err := json.NewDecoder(resp.Body).Decode(&health); err != nil {
-		fmt.Println("JSON decode failed:", err)
+		errLogger.Println("JSON decode failed:", err)
 		return
 	}
 	if health.Status == "UP" {
