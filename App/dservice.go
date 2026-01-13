@@ -6,7 +6,6 @@ import (
 	"math/rand/v2"
 	"time"
 	"log"
-	"os"
 )
 
 var startTime = time.Now()
