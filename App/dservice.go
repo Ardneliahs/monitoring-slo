@@ -17,7 +17,6 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil { //instanialisation of TCP connection is abstracted inside listen and serve
 		log.Fatal(err)
     }
-	log.Println("service started")
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request){

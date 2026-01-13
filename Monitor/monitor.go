@@ -130,7 +130,6 @@ func main() {
 	handler := promhttp.HandlerFor(registry,promhttp.HandlerOpts{},)
 	http.Handle("/metrics", handler)
 	http.ListenAndServe(":8081", nil)
-	log.Println("monitor started")
 }
 
 func checkHealth(name string, url string, timeout time.Duration){
