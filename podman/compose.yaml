@@ -14,7 +14,7 @@ services:
       - service
 
   prometheus:
-    image: prom/prometheus
+    image: docker.io/prom/prometheus
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
