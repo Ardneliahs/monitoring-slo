@@ -52,6 +52,14 @@ var workLatency = prometheus.NewHistogramVec(
 	prometheus.HistogramOpts{
 		Name: "app_latency",
 		Help: "latency for the application",
+		Buckets: []float64{
+			1,  // 1 ms
+			5,  // 5 ms
+			10,   // 10 ms
+			25,  // 25 ms
+			50,   // 50 ms
+			100,    // 100 ms
+    	},
 	},
 	[]string{"app"},
 )
@@ -193,6 +201,6 @@ func checkWork(name string, url string, timeout time.Duration){
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		failureCount.WithLabelValues(name).Inc()
 	} else {
-		workLatency.WithLabelValues(name).Observe(latency.Seconds())
+		workLatency.WithLabelValues(name).Observe(latency.Seconds() * 1000)
 	}
 }
