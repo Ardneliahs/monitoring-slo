@@ -7,3 +7,11 @@ scrape_configs:
   - job_name: "monitor"
     static_configs:
       - targets: ["monitor:8081"]
+
+rule_files:
+  - "alert.rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
