@@ -193,6 +193,6 @@ func checkWork(name string, url string, timeout time.Duration){
 	if resp.StatusCode > 299 || resp.StatusCode < 200 {
 		failureCount.WithLabelValues(name).Inc()
 	} else {
-		workLatency.WithLabelValues(name).Set(latency.Seconds() * 1000)
+		workLatency.WithLabelValues(name).Observe(latency.Seconds() * 1000)
 	}
 }
