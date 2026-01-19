@@ -48,8 +48,8 @@ var upSince = prometheus.NewGaugeVec(
 	},
 	[]string{"app"},
 )
-var workLatency = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
+var workLatency = prometheus.NewHistogramVec(
+	prometheus.HistogramOpts{
 		Name: "app_latency",
 		Help: "latency for the application",
 	},
@@ -113,7 +113,7 @@ func main() {
 		healthFailure.With(prometheus.Labels{"app": svc.Name}).Set(0)
 		appUnreachable.With(prometheus.Labels{"app": svc.Name}).Set(0)
 		upSince.With(prometheus.Labels{"app": svc.Name}).Set(0)
-		workLatency.With(prometheus.Labels{"app": svc.Name}).Set(0)
+		workLatency.With(prometheus.Labels{"app": svc.Name}).Observe(0)
 		failureCount.With(prometheus.Labels{"app": svc.Name}).Add(0)
 		appTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
     }
