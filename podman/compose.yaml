@@ -26,6 +26,19 @@ services:
       - monitor
       - alertmanager
 
+  grafana:
+    image: docker.io/grafana/grafana:main
+    container_name: grafana
+    volumes:
+      - /grafana/data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+
   alertmanager:
     image: docker.io/prom/alertmanager
     container_name: alertmanager

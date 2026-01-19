@@ -2,7 +2,7 @@ groups:
 - name: app-alerts
   rules:
   - alert: ServiceDown
-    expr: service_up == 1
+    expr: service_up == 0
     for: 1m
     labels:
       severity: warning
