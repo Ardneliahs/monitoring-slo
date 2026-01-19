@@ -12,3 +12,17 @@ services:
     - "8081:8081"
     depends_on:
       - service
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - monitor
+
+  volumes:
+    prometheus_data:
