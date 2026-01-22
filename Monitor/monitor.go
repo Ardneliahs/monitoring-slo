@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strconv"
 )
 
 var serviceUp = prometheus.NewGaugeVec(
