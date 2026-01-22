@@ -36,7 +36,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request){
 }
 
 func workHandler(w http.ResponseWriter, r *http.Request){ //has varying latency, sometimes timeout, sometimes sends 5xx
-	reqNumber := rand.IntN(100)
+	reqNumber := rand.IntN(102)
 	if reqNumber == 1 {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else if reqNumber == 2 {
