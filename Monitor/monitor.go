@@ -63,12 +63,12 @@ var workLatency = prometheus.NewHistogramVec(
 	},
 	[]string{"app"},
 )
-var failureCount = prometheus.NewCounterVec(
+var requestCount = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
-		Name: "failure_count",
-		Help: "app returning non 2xx",
+		Name: "request_count",
+		Help: "app returning various statuses",
 	},
-	[]string{"app"},
+	[]string{"app","status"},
 )
 var appTimeout = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
@@ -113,18 +113,8 @@ func main() {
 	registry.MustRegister(appUnreachable)
 	registry.MustRegister(upSince)
 	registry.MustRegister(workLatency)
-	registry.MustRegister(failureCount)
+	registry.MustRegister(requestCount)
 	registry.MustRegister(appTimeout)
-	for _, svc := range cfg.Services {
-		serviceUp.With(prometheus.Labels{"app": svc.Name}).Set(0)
-		healthTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
-		healthFailure.With(prometheus.Labels{"app": svc.Name}).Set(0)
-		appUnreachable.With(prometheus.Labels{"app": svc.Name}).Set(0)
-		upSince.With(prometheus.Labels{"app": svc.Name}).Set(0)
-		workLatency.With(prometheus.Labels{"app": svc.Name}).Observe(0)
-		failureCount.With(prometheus.Labels{"app": svc.Name}).Add(0)
-		appTimeout.With(prometheus.Labels{"app": svc.Name}).Set(0)
-    }
 	go func() {
 		ticker := time.NewTicker(cfg.Monitor.Interval)
 		defer ticker.Stop()
@@ -189,18 +179,17 @@ func checkWork(name string, url string, timeout time.Duration){
 	start := time.Now()
 	resp, err := http.DefaultClient.Do(req)
 	latency := time.Since(start)
+	status := strconv.Itoa(resp.StatusCode)
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			appTimeout.WithLabelValues(name).Set(1)
 			return
 		}
+		status = "error"
 		appUnreachable.WithLabelValues(name).Set(1) // should not be part of slo
 		return
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode > 299 || resp.StatusCode < 200 {
-		failureCount.WithLabelValues(name).Inc()
-	} else {
-		workLatency.WithLabelValues(name).Observe(latency.Seconds() * 1000)
-	}
+	requestCount.WithLabelValues(name,status).Inc()
+	workLatency.WithLabelValues(name).Observe(latency.Seconds() * 1000)
 }
