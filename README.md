@@ -6,3 +6,9 @@ The metrics tell the health of the service, exposing metrics that help us define
 Based on these, we can establish SLOs related to Availability, latency and error rates.
 
 Prometheus is used for metrics aggregation and grafana for visualizations.
+
+To spawn the environment, run:
+
+```
+bash scripts/image_build.sh
+```
