@@ -1,0 +1,20 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build monitor
+      run: docker build . --file Dockerfile --tag monitor:$(date +%s)
+    - name: Build app
+      run: docker build . --file Dockerfile --tag dservice:$(date +%s)
