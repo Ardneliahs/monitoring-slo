@@ -12,3 +12,5 @@ To spawn the environment, run:
 ```
 bash scripts/image_build.sh
 ```
+
+Note: The script needs podman to be installed
