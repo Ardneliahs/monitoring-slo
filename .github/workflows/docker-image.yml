@@ -17,4 +17,4 @@ jobs:
     - name: Build monitor
       run: cd Monitor && docker build . --file Dockerfile --tag monitor:$(date +%s)
     - name: Build app
-      run: cd APP && docker build . --file Dockerfile --tag dservice:$(date +%s)
+      run: cd App && docker build . --file Dockerfile --tag dservice:$(date +%s)
